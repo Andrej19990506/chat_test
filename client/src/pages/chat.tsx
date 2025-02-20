@@ -8,6 +8,8 @@ import { useWebSocket } from "@/hooks/use-websocket";
 import { MessageCircle, Users, AlertCircle, LogOut } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
+import { motion } from "framer-motion";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function Chat() {
   const [, setLocation] = useLocation();
@@ -51,7 +53,12 @@ export default function Chat() {
 
   return (
     <div className="min-h-screen w-full bg-background p-4">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-4"
+      >
         <div className="md:col-span-3">
           <Card className="h-[calc(100vh-2rem)]">
             <div className="h-full flex flex-col">
@@ -59,16 +66,21 @@ export default function Chat() {
                 <MessageCircle className="h-5 w-5 text-orange-500" />
                 <h2 className="font-semibold">Чат</h2>
                 <div className="ml-auto flex items-center gap-4">
+                  <ThemeToggle />
                   {!connected && (
-                    <div className="flex items-center gap-2 text-destructive">
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center gap-2 text-destructive"
+                    >
                       <AlertCircle className="h-4 w-4" />
                       <span className="text-sm">Отключено</span>
-                    </div>
+                    </motion.div>
                   )}
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-gray-500 hover:text-orange-500"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-orange-500 transition-colors"
                     onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4 mr-2" />
@@ -79,9 +91,12 @@ export default function Chat() {
 
               <ScrollArea ref={scrollRef} className="flex-1 p-4">
                 <div className="space-y-4">
-                  {messages.map((msg) => (
-                    <div
+                  {messages.map((msg, index) => (
+                    <motion.div
                       key={msg.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1, duration: 0.3 }}
                       className={`flex flex-col ${
                         msg.username === username ? "items-end" : "items-start"
                       }`}
@@ -90,7 +105,7 @@ export default function Chat() {
                         className={`max-w-[80%] rounded-lg p-3 ${
                           msg.username === username
                             ? "bg-orange-500 text-white"
-                            : "bg-gray-100"
+                            : "bg-accent"
                         }`}
                       >
                         <div className="text-sm font-medium mb-1">
@@ -98,16 +113,20 @@ export default function Chat() {
                         </div>
                         <div className="break-words">{msg.content}</div>
                         <div className="text-xs opacity-70 mt-1">
-                          {format(msg.timestamp ? new Date(msg.timestamp) : new Date(), "HH:mm")}
+                          {format(new Date(msg.timestamp), "HH:mm")}
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </ScrollArea>
 
               <form onSubmit={handleSubmit} className="p-4 border-t">
-                <div className="flex gap-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex gap-2"
+                >
                   <Input
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
@@ -115,14 +134,14 @@ export default function Chat() {
                     disabled={!connected}
                     className="focus-visible:ring-orange-500"
                   />
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={!connected}
-                    className="bg-orange-500 hover:bg-orange-600"
+                    className="bg-orange-500 hover:bg-orange-600 transition-colors"
                   >
                     Отправить
                   </Button>
-                </div>
+                </motion.div>
               </form>
             </div>
           </Card>
@@ -137,22 +156,25 @@ export default function Chat() {
 
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-2">
-                {users.map((user) => (
-                  <div
+                {users.map((user, index) => (
+                  <motion.div
                     key={user.id}
-                    className="flex items-center gap-2 p-2 rounded-lg bg-gray-50"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center gap-2 p-2 rounded-lg bg-accent/50"
                   >
                     <div className="h-2 w-2 rounded-full bg-green-500" />
                     <span className="font-medium">
                       {user.username === username ? "Вы" : user.username}
                     </span>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </ScrollArea>
           </div>
         </Card>
-      </div>
+      </motion.div>
     </div>
   );
 }
