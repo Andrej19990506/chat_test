@@ -41,56 +41,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
   wss.on("connection", (ws: WSClient) => {
     console.log('New WebSocket connection established');
 
+    ws.on("error", (error) => {
+      console.error('WebSocket error:', error);
+    });
+
     ws.on("message", async (data) => {
-      const message = JSON.parse(data.toString());
-      console.log('Received message:', message);
+      try {
+        const message = JSON.parse(data.toString());
+        console.log('Received message:', message);
 
-      switch (message.type) {
-        case "join": {
-          ws.username = message.username;
-          await storage.setUserOnline(message.username, true);
-          const onlineUsers = await storage.getOnlineUsers();
-          const messages = await storage.getMessages();
+        switch (message.type) {
+          case "join": {
+            ws.username = message.username;
+            await storage.setUserOnline(message.username, true);
+            const onlineUsers = await storage.getOnlineUsers();
+            const messages = await storage.getMessages();
+            console.log(`User ${message.username} joined. Online users:`, onlineUsers);
 
-          ws.send(JSON.stringify({
-            type: "init",
-            messages,
-            users: onlineUsers,
-          }));
-
-          broadcast({
-            type: "userJoined",
-            username: message.username,
-            users: onlineUsers,
-          });
-          break;
-        }
-
-        case "message": {
-          try {
-            const validMessage = insertMessageSchema.parse({
-              content: message.content,
-              username: ws.username!,
-            });
-
-            const savedMessage = await storage.addMessage(validMessage);
-            broadcast({
-              type: "message",
-              message: savedMessage,
-            });
-          } catch (error) {
             ws.send(JSON.stringify({
-              type: "error",
-              message: "Invalid message format",
+              type: "init",
+              messages,
+              users: onlineUsers,
             }));
+
+            broadcast({
+              type: "userJoined",
+              username: message.username,
+              users: onlineUsers,
+            });
+            break;
           }
-          break;
+
+          case "message": {
+            try {
+              const validMessage = insertMessageSchema.parse({
+                content: message.content,
+                username: ws.username!,
+              });
+
+              const savedMessage = await storage.addMessage(validMessage);
+              console.log(`New message from ${ws.username}:`, savedMessage);
+
+              broadcast({
+                type: "message",
+                message: savedMessage,
+              });
+            } catch (error) {
+              console.error('Invalid message format:', error);
+              ws.send(JSON.stringify({
+                type: "error",
+                message: "Invalid message format",
+              }));
+            }
+            break;
+          }
         }
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
       }
     });
 
     ws.on("close", async () => {
       if (ws.username) {
+        console.log(`User ${ws.username} disconnected`);
         await storage.setUserOnline(ws.username, false);
         const onlineUsers = await storage.getOnlineUsers();
         broadcast({
