@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { MessageCircle } from "lucide-react";
 
 interface AuthForm {
   username: string;
@@ -54,17 +55,26 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center space-y-2">
-          <h1 className="text-2xl font-bold">Добро пожаловать в Чат</h1>
-          <CardDescription>Войдите или создайте новый аккаунт</CardDescription>
+    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="text-center space-y-2 pb-2">
+          <div className="flex justify-center mb-4">
+            <div className="h-12 w-12 rounded-full bg-orange-500 flex items-center justify-center">
+              <MessageCircle className="h-6 w-6 text-white" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Добро пожаловать в Чат</h1>
+          <CardDescription className="text-gray-500">Войдите или создайте новый аккаунт</CardDescription>
         </CardHeader>
 
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Вход</TabsTrigger>
-            <TabsTrigger value="register">Регистрация</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="login" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+              Вход
+            </TabsTrigger>
+            <TabsTrigger value="register" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+              Регистрация
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="login">
@@ -78,6 +88,7 @@ export default function Login() {
                     value={formData.username}
                     onChange={handleInputChange}
                     placeholder="Введите имя пользователя"
+                    className="focus-visible:ring-orange-500"
                   />
                 </div>
                 <div className="space-y-2">
@@ -89,11 +100,12 @@ export default function Login() {
                     value={formData.password}
                     onChange={handleInputChange}
                     placeholder="Введите пароль"
+                    className="focus-visible:ring-orange-500"
                   />
                 </div>
               </CardContent>
               <CardFooter>
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600">
                   Войти
                 </Button>
               </CardFooter>
@@ -111,6 +123,7 @@ export default function Login() {
                     value={formData.username}
                     onChange={handleInputChange}
                     placeholder="Выберите имя пользователя"
+                    className="focus-visible:ring-orange-500"
                   />
                 </div>
                 <div className="space-y-2">
@@ -122,11 +135,12 @@ export default function Login() {
                     value={formData.password}
                     onChange={handleInputChange}
                     placeholder="Создайте пароль"
+                    className="focus-visible:ring-orange-500"
                   />
                 </div>
               </CardContent>
               <CardFooter>
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600">
                   Создать аккаунт
                 </Button>
               </CardFooter>

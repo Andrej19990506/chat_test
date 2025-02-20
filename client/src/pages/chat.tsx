@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useWebSocket } from "@/hooks/use-websocket";
-import { MessageCircle, Users, AlertCircle } from "lucide-react";
+import { MessageCircle, Users, AlertCircle, LogOut } from "lucide-react";
 import { format } from "date-fns";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Chat() {
   const [, setLocation] = useLocation();
@@ -36,6 +37,16 @@ export default function Chat() {
     setMessage("");
   };
 
+  const handleLogout = async () => {
+    try {
+      await apiRequest("POST", "/api/logout");
+      localStorage.removeItem("chat-username");
+      setLocation("/");
+    } catch (error) {
+      console.error("Ошибка при выходе:", error);
+    }
+  };
+
   if (!username) return null;
 
   return (
@@ -45,14 +56,25 @@ export default function Chat() {
           <Card className="h-[calc(100vh-2rem)]">
             <div className="h-full flex flex-col">
               <div className="p-4 border-b flex items-center gap-2">
-                <MessageCircle className="h-5 w-5" />
+                <MessageCircle className="h-5 w-5 text-orange-500" />
                 <h2 className="font-semibold">Чат</h2>
-                {!connected && (
-                  <div className="ml-auto flex items-center gap-2 text-destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <span className="text-sm">Отключено</span>
-                  </div>
-                )}
+                <div className="ml-auto flex items-center gap-4">
+                  {!connected && (
+                    <div className="flex items-center gap-2 text-destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <span className="text-sm">Отключено</span>
+                    </div>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-gray-500 hover:text-orange-500"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Выйти
+                  </Button>
+                </div>
               </div>
 
               <ScrollArea ref={scrollRef} className="flex-1 p-4">
@@ -67,8 +89,8 @@ export default function Chat() {
                       <div
                         className={`max-w-[80%] rounded-lg p-3 ${
                           msg.username === username
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
+                            ? "bg-orange-500 text-white"
+                            : "bg-gray-100"
                         }`}
                       >
                         <div className="text-sm font-medium mb-1">
@@ -91,8 +113,13 @@ export default function Chat() {
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Введите сообщение..."
                     disabled={!connected}
+                    className="focus-visible:ring-orange-500"
                   />
-                  <Button type="submit" disabled={!connected}>
+                  <Button 
+                    type="submit" 
+                    disabled={!connected}
+                    className="bg-orange-500 hover:bg-orange-600"
+                  >
                     Отправить
                   </Button>
                 </div>
@@ -104,7 +131,7 @@ export default function Chat() {
         <Card className="h-[calc(100vh-2rem)]">
           <div className="h-full flex flex-col">
             <div className="p-4 border-b flex items-center gap-2">
-              <Users className="h-5 w-5" />
+              <Users className="h-5 w-5 text-orange-500" />
               <h2 className="font-semibold">Пользователи онлайн</h2>
             </div>
 
@@ -113,7 +140,7 @@ export default function Chat() {
                 {users.map((user) => (
                   <div
                     key={user.id}
-                    className="flex items-center gap-2 p-2 rounded-lg bg-muted"
+                    className="flex items-center gap-2 p-2 rounded-lg bg-gray-50"
                   >
                     <div className="h-2 w-2 rounded-full bg-green-500" />
                     <span className="font-medium">
