@@ -9,19 +9,26 @@ import { MessageCircle, Users, AlertCircle, LogOut } from "lucide-react";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
 import { motion } from "framer-motion";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { SettingsDialog } from "@/components/ui/settings-dialog";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Chat() {
   const [, setLocation] = useLocation();
   const [message, setMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const username = localStorage.getItem("chat-username");
+  const [avatar, setAvatar] = useState<string | null>(null);
   const { messages, users, connected, sendMessage } = useWebSocket(username);
 
   useEffect(() => {
     if (!username) {
       setLocation("/");
       return;
+    }
+    // Load avatar from localStorage
+    const savedAvatar = localStorage.getItem('chat-avatar');
+    if (savedAvatar) {
+      setAvatar(savedAvatar);
     }
   }, [username, setLocation]);
 
@@ -43,6 +50,7 @@ export default function Chat() {
     try {
       await apiRequest("POST", "/api/logout");
       localStorage.removeItem("chat-username");
+      localStorage.removeItem("chat-avatar");
       setLocation("/");
     } catch (error) {
       console.error("Ошибка при выходе:", error);
@@ -66,7 +74,7 @@ export default function Chat() {
                 <MessageCircle className="h-5 w-5 text-orange-500" />
                 <h2 className="font-semibold">Чат</h2>
                 <div className="ml-auto flex items-center gap-4">
-                  <ThemeToggle />
+                  <SettingsDialog />
                   {!connected && (
                     <motion.div
                       initial={{ opacity: 0, x: 20 }}
@@ -108,8 +116,14 @@ export default function Chat() {
                             : "bg-accent"
                         }`}
                       >
-                        <div className="text-sm font-medium mb-1">
-                          {msg.username === username ? "Вы" : msg.username}
+                        <div className="flex items-center gap-2 mb-1">
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={msg.username === username ? avatar ?? undefined : undefined} />
+                            <AvatarFallback>{msg.username[0].toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-medium">
+                            {msg.username === username ? "Вы" : msg.username}
+                          </span>
                         </div>
                         <div className="break-words">{msg.content}</div>
                         <div className="text-xs opacity-70 mt-1">
@@ -164,7 +178,10 @@ export default function Chat() {
                     transition={{ delay: index * 0.1 }}
                     className="flex items-center gap-2 p-2 rounded-lg bg-accent/50"
                   >
-                    <div className="h-2 w-2 rounded-full bg-green-500" />
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage src={user.username === username ? avatar ?? undefined : undefined} />
+                      <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
+                    </Avatar>
                     <span className="font-medium">
                       {user.username === username ? "Вы" : user.username}
                     </span>
