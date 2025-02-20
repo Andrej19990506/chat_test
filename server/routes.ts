@@ -2,7 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertUserSchema, insertMessageSchema } from "@shared/schema";
+import { insertMessageSchema } from "@shared/schema";
+import { setupAuth } from "./auth";
 
 interface WSClient extends WebSocket {
   username?: string;
@@ -15,20 +16,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     path: "/ws"
   });
 
-  app.post("/api/login", async (req, res) => {
-    try {
-      const data = insertUserSchema.parse(req.body);
-      const existingUser = await storage.getUser(data.username);
-
-      if (!existingUser) {
-        await storage.createUser(data);
-      }
-
-      res.json({ username: data.username });
-    } catch (error) {
-      res.status(400).json({ error: "Invalid username" });
-    }
-  });
+  // Настройка аутентификации
+  setupAuth(app);
 
   function broadcast(message: any) {
     wss.clients.forEach((client) => {

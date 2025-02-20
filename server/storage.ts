@@ -23,9 +23,7 @@ export class MemStorage implements IStorage {
   }
 
   async getUser(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    return this.users.get(username);
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

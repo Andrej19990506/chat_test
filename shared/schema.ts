@@ -5,6 +5,7 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
+  password: text("password").notNull(),
   online: text("online").default("false"),
 });
 
@@ -17,6 +18,7 @@ export const messages = pgTable("messages", {
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
+  password: true,
 });
 
 export const insertMessageSchema = createInsertSchema(messages).pick({
@@ -27,3 +29,6 @@ export const insertMessageSchema = createInsertSchema(messages).pick({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Message = typeof messages.$inferSelect;
+
+// Схема для логина
+export const loginSchema = insertUserSchema;

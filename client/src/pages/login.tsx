@@ -1,39 +1,56 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+
+interface AuthForm {
+  username: string;
+  password: string;
+}
 
 export default function Login() {
-  const [username, setUsername] = useState("");
+  const [formData, setFormData] = useState<AuthForm>({ username: "", password: "" });
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, type: "login" | "register") => {
     e.preventDefault();
 
-    if (!username.trim()) {
+    if (!formData.username.trim() || !formData.password.trim()) {
       toast({
         title: "Ошибка",
-        description: "Пожалуйста, введите имя пользователя",
+        description: "Пожалуйста, заполните все поля",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      await apiRequest("POST", "/api/login", { username: username.trim() });
-      localStorage.setItem("chat-username", username.trim());
+      const endpoint = type === "login" ? "/api/login" : "/api/register";
+      await apiRequest("POST", endpoint, formData);
+      localStorage.setItem("chat-username", formData.username.trim());
       setLocation("/chat");
     } catch (error) {
+      const message = type === "login" 
+        ? "Не удалось войти. Проверьте имя пользователя и пароль."
+        : "Не удалось зарегистрироваться. Возможно, пользователь уже существует.";
+
       toast({
         title: "Ошибка",
-        description: "Не удалось войти. Пожалуйста, попробуйте снова.",
+        description: message,
         variant: "destructive",
       });
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -41,25 +58,81 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-2">
           <h1 className="text-2xl font-bold">Добро пожаловать в Чат</h1>
-          <p className="text-muted-foreground">Введите ваше имя пользователя для продолжения</p>
+          <CardDescription>Войдите или создайте новый аккаунт</CardDescription>
         </CardHeader>
 
-        <form onSubmit={handleSubmit}>
-          <CardContent>
-            <Input
-              placeholder="Имя пользователя"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full"
-            />
-          </CardContent>
+        <Tabs defaultValue="login" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">Вход</TabsTrigger>
+            <TabsTrigger value="register">Регистрация</TabsTrigger>
+          </TabsList>
 
-          <CardFooter>
-            <Button type="submit" className="w-full">
-              Войти в чат
-            </Button>
-          </CardFooter>
-        </form>
+          <TabsContent value="login">
+            <form onSubmit={(e) => handleSubmit(e, "login")}>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="username-login">Имя пользователя</Label>
+                  <Input
+                    id="username-login"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    placeholder="Введите имя пользователя"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password-login">Пароль</Label>
+                  <Input
+                    id="password-login"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Введите пароль"
+                  />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" className="w-full">
+                  Войти
+                </Button>
+              </CardFooter>
+            </form>
+          </TabsContent>
+
+          <TabsContent value="register">
+            <form onSubmit={(e) => handleSubmit(e, "register")}>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="username-register">Имя пользователя</Label>
+                  <Input
+                    id="username-register"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    placeholder="Выберите имя пользователя"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password-register">Пароль</Label>
+                  <Input
+                    id="password-register"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Создайте пароль"
+                  />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" className="w-full">
+                  Создать аккаунт
+                </Button>
+              </CardFooter>
+            </form>
+          </TabsContent>
+        </Tabs>
       </Card>
     </div>
   );
