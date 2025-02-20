@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   online: text("online").default("false"),
+  avatar: text("avatar"),
 });
 
 export const messages = pgTable("messages", {
@@ -32,3 +33,8 @@ export type Message = typeof messages.$inferSelect;
 
 // Схема для логина
 export const loginSchema = insertUserSchema;
+
+// Схема для обновления аватара
+export const updateAvatarSchema = z.object({
+  avatar: z.string(),
+});

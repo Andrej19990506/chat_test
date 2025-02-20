@@ -19,6 +19,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Настройка аутентификации
   setupAuth(app);
 
+  // Добавляем новый роут для обновления аватара
+  app.post("/api/avatar", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Не авторизован" });
+    }
+
+    try {
+      await storage.updateAvatar(req.user.username, req.body.avatar);
+      res.status(200).json({ message: "Аватар обновлен" });
+    } catch (error) {
+      res.status(500).json({ message: "Ошибка при обновлении аватара" });
+    }
+  });
+
   function broadcast(message: any) {
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {

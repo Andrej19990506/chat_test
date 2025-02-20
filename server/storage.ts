@@ -7,6 +7,7 @@ export interface IStorage {
   getOnlineUsers(): Promise<User[]>;
   addMessage(message: { content: string; username: string }): Promise<Message>;
   getMessages(): Promise<Message[]>;
+  updateAvatar(username: string, avatar: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -28,7 +29,7 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id, online: "false" };
+    const user: User = { ...insertUser, id, online: "false", avatar: null };
     this.users.set(user.username, user);
     return user;
   }
@@ -48,6 +49,7 @@ export class MemStorage implements IStorage {
   }
 
   async addMessage(message: { content: string; username: string }): Promise<Message> {
+    const user = await this.getUser(message.username);
     const newMessage: Message = {
       id: this.currentMessageId++,
       content: message.content,
@@ -60,6 +62,14 @@ export class MemStorage implements IStorage {
 
   async getMessages(): Promise<Message[]> {
     return this.messages;
+  }
+
+  async updateAvatar(username: string, avatar: string): Promise<void> {
+    const user = await this.getUser(username);
+    if (user) {
+      user.avatar = avatar;
+      this.users.set(username, user);
+    }
   }
 }
 
