@@ -76,7 +76,7 @@ export default function Chat() {
                         </div>
                         <div className="break-words">{msg.content}</div>
                         <div className="text-xs opacity-70 mt-1">
-                          {format(new Date(msg.timestamp), "HH:mm")}
+                          {format(msg.timestamp ? new Date(msg.timestamp) : new Date(), "HH:mm")}
                         </div>
                       </div>
                     </div>
